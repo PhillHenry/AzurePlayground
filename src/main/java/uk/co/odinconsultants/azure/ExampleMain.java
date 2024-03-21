@@ -1,6 +1,8 @@
 package uk.co.odinconsultants.azure;
 
+import com.azure.core.credential.TokenCredential;
 import com.azure.identity.DefaultAzureCredential;
+import com.azure.identity.UsernamePasswordCredentialBuilder;
 import com.azure.resourcemanager.datafactory.DataFactoryManager;
 import com.azure.resourcemanager.datafactory.models.Factory;
 import com.azure.resourcemanager.storage.StorageManager;
@@ -37,6 +39,12 @@ import org.slf4j.LoggerFactory;
 
 import static java.lang.String.format;
 
+/**
+ * For UsernamePasswordCredentialBuilder
+ * AADSTS50076: Due to a configuration change made by your administrator, or because you moved to
+ * a new location, you must use multi-factor authentication to access
+ * '[REDACTED_HASH]'. Trace ID: [REDACTED_HASH] Correlation ID: [REDACTED_HASH] Timestamp: 2024-03-21 12:23:31Z
+ */
 public class ExampleMain {
     private static final Logger logger = LoggerFactory.getLogger(ExampleMain.class);
 
@@ -50,12 +58,22 @@ public class ExampleMain {
         var subscriptionId = args[1];
         var resourceGroup = args[2];
         var factoryId = args[3];
+        var clientId = args[4];
+        var username = args[5];
+        var password = args[6];
 
+        System.out.println(format("clientId      : %-50s", clientId));
+        System.out.println(format("username      : %-50s", username));
+        System.out.println(format("password      : %-50s", password));
         System.out.println(format("tenantId      : %-50s", tenantId));
         System.out.println(format("subscriptionId: %-50s", subscriptionId));
         System.out.println(format("factoryId     : %-50s", factoryId));
 
-        DefaultAzureCredential credentials = new DefaultAzureCredentialBuilder().tenantId(tenantId).build();
+        TokenCredential credentials = new UsernamePasswordCredentialBuilder()
+                .clientId(clientId)
+                .username(username)
+                .password(password)
+                .build();
         DataFactoryManager manager =  DataFactoryManager
                 .configure().withLogOptions(new HttpLogOptions().setLogLevel(HttpLogDetailLevel.BASIC))
                 .authenticate(credentials, new AzureProfile(tenantId, subscriptionId, AzureEnvironment.AZURE));
